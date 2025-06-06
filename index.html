@@ -72,17 +72,9 @@
     </div>
     <button id="onoff_b" onclick="turnon()">開</button>
     
-    <script src="https://unpkg.com/mqtt/dist/mqtt.js"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
-        var options = {
-            host: 'bf707fe8d51441e0ae5f250cf83d9f5a.s1.eu.hivemq.cloud',
-            port: 8883,
-            protocol: 'mqtts',
-            username: 'cssuser',
-            password: 'Ss01010101'
-        }
-
-        var client = mqtt.connect(options);
+        const client = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
 
         const r = document.getElementById("r");
         const g = document.getElementById("g");
@@ -95,21 +87,11 @@
         const d_g_v = document.getElementById("g_v");
         const d_b_v = document.getElementById("b_v");
 
-        client.on('connect', function () {
-            console.log('Connected');
-            client.subscribe('led/status', function (err) {
-                if (!err) {
-                    console.log('Subscribed to led/status');
-                } else {
-                    console.error('Subscription error:', err);
-                }
-            });
+        client.on('connect', () => {
+            console.log("MQTT connected");
+            client.subscribe('led/status');
         });
-
-        client.on('error', function (error) {
-            console.log(error);
-        });
-
+        
         client.on('message', (topic, message) => {
             if (topic === 'led/status') {
                 let [now_r, now_g, now_b, status] = message.toString().split(',');
