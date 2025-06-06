@@ -89,21 +89,27 @@
 
         if(urlParams.has('r')){
             document.getElementById("r").value = urlParams.get('r');
-            r.oninput();
+            rv.innerText = r.value;
+            d_r_v.style.backgroundColor = `rgb(${r.value}, 0, 0)`;
+            colorBox.style.backgroundColor = `rgb(${r.value}, ${g.value}, ${b.value})`;
         } else {
             document.getElementById("r").value = 0;
         }
 
         if(urlParams.has('g')){
             document.getElementById("g").value = urlParams.get('g');
-            g.oninput();
+            gv.innerText = g.value;
+            d_g_v.style.backgroundColor = `rgb(0, ${g.value}, 0)`;
+            colorBox.style.backgroundColor = `rgb(${r.value}, ${g.value}, ${b.value})`;
         } else {
             document.getElementById("g").value = 0;
         }
 
         if(urlParams.has('b')){
             document.getElementById("b").value = urlParams.get('b');
-            b.oninput();
+            bv.innerText = b.value;
+            d_b_v.style.backgroundColor = `rgb(0, 0, ${b.value})`;
+            colorBox.style.backgroundColor = `rgb(${r.value}, ${g.value}, ${b.value})`;
         } else {
             document.getElementById("b").value = 0;
         }
