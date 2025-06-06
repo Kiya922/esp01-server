@@ -58,7 +58,7 @@
             border-width: 35px;
         }
       </style>
-      <script src="https://unpkg.com/paho-mqtt/mqttws31.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/paho-mqtt@1.0.3/mqttws31-min.js"></script>
   </head>
   <body>
     <div id="color_panel" style="width: 100%; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; align-items: center;">
@@ -74,7 +74,14 @@
     <button id="onoff_b" onclick="turnon()">開</button>
     
     <script>
-        const client = new Paho.MQTT.Client("broker.hivemq.com", 8884, "web_" + parseInt(Math.random() * 1000000));
+        let mc;
+        let mqtt_client_id = window.localStorage.client_id + '_' + Math.random().toString(16);
+ 
+        mc = new Paho.MQTT.Client("broker.hivemq.com", 8884, mqtt_client_id);
+        mc.connect({
+            onSuccess: onConnect,
+            useSSL: true
+        });
 
         const r = document.getElementById("r");
         const g = document.getElementById("g");
@@ -87,9 +94,20 @@
         const d_g_v = document.getElementById("g_v");
         const d_b_v = document.getElementById("b_v");
 
-        client.onConnectionLost = function (responseObject) {
-            console.log("連線中斷：", responseObject.errorMessage);
-        };
+        mc.onConnectionLost = function (responseObject) {
+            console.log(responseObject.errorCode);
+            console.log("Connection Lost: "+responseObject.errorMessage);
+        }
+
+        function onConnect(){
+            console.log("Connected!");
+            mc.subscribe("led/status", {
+                onSuccess: function (){
+                    console.log('subscribeSuccess');
+                },
+                onFailure: function (){}
+            });
+        }
 
         client.onMessageArrived = function (message) {
         if (message.destinationName === "led/status") {
@@ -110,18 +128,6 @@
             document.getElementById("onoff_b").innerText = status === "1" ? '關' : '開';
         }
         };
-
-        // 連線
-        client.connect({
-        useSSL: true,
-        onSuccess: function () {
-            console.log("成功連線 HiveMQ");
-            client.subscribe("led/status");
-        },
-        onFailure: function (e) {
-            console.error("連線失敗：", e.errorMessage);
-        }
-        });
 
         r.oninput = () => rv.innerText = r.value;
         g.oninput = () => gv.innerText = g.value;
