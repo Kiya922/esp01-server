@@ -58,7 +58,7 @@
             border-width: 35px;
         }
       </style>
-      <script src="https://cdn.jsdelivr.net/npm/paho-mqtt@1.0.3/mqttws31-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/5.10.4/mqtt.min.js"></script>
   </head>
   <body>
     <div id="color_panel" style="width: 100%; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; align-items: center;">
@@ -74,14 +74,7 @@
     <button id="onoff_b" onclick="turnon()">開</button>
     
     <script>
-        let mc;
-        let mqtt_client_id = window.localStorage.client_id + '_' + Math.random().toString(16);
- 
-        mc = new Paho.MQTT.Client("broker.hivemq.com", 8884, mqtt_client_id);
-        mc.connect({
-            onSuccess: onConnect,
-            useSSL: true
-        });
+        const client = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
 
         const r = document.getElementById("r");
         const g = document.getElementById("g");
@@ -94,36 +87,40 @@
         const d_g_v = document.getElementById("g_v");
         const d_b_v = document.getElementById("b_v");
 
-        mc.onConnectionLost = function (responseObject) {
-            console.log(responseObject.errorCode);
-            console.log("Connection Lost: "+responseObject.errorMessage);
-        }
-
-        function onConnect(){
-            console.log("Connected!");
-            mc.subscribe("led/status", {
-                onSuccess: function (){
-                    console.log('subscribeSuccess');
-                },
-                onFailure: function (){}
+        client.on('connect', function () {
+            console.log('Connected');
+            client.subscribe('led/status', function (err) {
+                if (!err) {
+                    console.log('Subscribed to led/status');
+                } else {
+                    console.error('Subscription error:', err);
+                }
             });
-        }
+        });
 
-        mc.onMessageArrived = function (message) {
-            let json = JSON.parse(message.payloadString);
-            if(json.destinationName === "led/status") {
-                r.value = json.r || 0;
-                g.value = json.g || 0;
-                b.value = json.b || 0;
-                rv.innerText = r.value;
-                gv.innerText = g.value;
-                bv.innerText = b.value;
-                colorBox.style.backgroundColor = `rgb(${r.value}, ${g.value}, ${b.value})`;
-                d_r_v.style.backgroundColor = `rgb(${r.value}, 0, 0)`;
-                d_g_v.style.backgroundColor = `rgb(0, ${g.value}, 0)`;
-                d_b_v.style.backgroundColor = `rgb(0, 0, ${b.value})`;
+        client.on('error', function (error) {
+            console.log(error);
+        });
+
+        client.on('message', (topic, message) => {
+            if (topic === 'led/status') {
+                let [now_r, now_g, now_b, status] = message.toString().split(',');
+                now_r = parseInt(now_r);
+                now_g = parseInt(now_g);
+                now_b = parseInt(now_b);
+                r.value = now_r;
+                g.value = now_g;
+                b.value = now_b;
+                rv.innerText = now_r;
+                gv.innerText = now_g;
+                bv.innerText = now_b;
+                colorBox.style.backgroundColor = `rgb(${now_r}, ${now_g}, ${now_b})`;
+                d_r_v.style.backgroundColor = `rgb(${now_r}, 0, 0)`;
+                d_g_v.style.backgroundColor = `rgb(0, ${now_g}, 0)`;
+                d_b_v.style.backgroundColor = `rgb(0, 0, ${now_b})`;
+                document.getElementById("onoff_b").innerText = status === "1" ? '關' : '開';
             }
-        };
+        });
 
         r.oninput = () => rv.innerText = r.value;
         g.oninput = () => gv.innerText = g.value;
@@ -140,14 +137,9 @@
         };
 
         function turnon() {
-            let message = new Paho.MQTT.Message(JSON.stringify({
-                r: r.value,
-                g: g.value,
-                b: b.value,
-                status: document.getElementById("onoff_b").innerText === '開' ? '1' : '0'
-            }));
-            message.destinationName = "HootKaSelf/server";
-            mc.send(message);
+            const status = document.getElementById("onoff_b").innerText === '開' ? '1' : '0';
+            client.publish('led/control', `${r.value},${g.value},${b.value},${status}`);
+            document.getElementById("onoff_b").innerText = status === '1' ? '關' : '開';
         }
 
 
