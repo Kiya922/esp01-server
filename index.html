@@ -58,7 +58,6 @@
             border-width: 35px;
         }
       </style>
-      <script src="https://unpkg.com/mqtt/dist/mqtt.js"></script>
   </head>
   <body>
     <div id="color_panel" style="width: 100%; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; align-items: center;">
@@ -73,8 +72,8 @@
     </div>
     <button id="onoff_b" onclick="turnon()">開</button>
     
+    <script src="https://unpkg.com/mqtt/dist/mqtt.js"></script>
     <script>
-
         var options = {
             host: 'bf707fe8d51441e0ae5f250cf83d9f5a.s1.eu.hivemq.cloud',
             port: 8883,
