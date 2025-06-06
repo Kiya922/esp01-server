@@ -73,6 +73,9 @@
     <button id="onoff_b" onclick="turnon()">開</button>
     
     <script>
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+
         const r = document.getElementById("r");
         const g = document.getElementById("g");
         const b = document.getElementById("b");
@@ -83,6 +86,24 @@
         const d_r_v = document.getElementById("r_v");
         const d_g_v = document.getElementById("g_v");
         const d_b_v = document.getElementById("b_v");
+
+        if(urlParams.has('r')){
+            document.getElementById("r").value = urlParams.get('r');
+        } else {
+            document.getElementById("r").value = 0;
+        }
+
+        if(urlParams.has('g')){
+            document.getElementById("g").value = urlParams.get('g');
+        } else {
+            document.getElementById("g").value = 0;
+        }
+
+        if(urlParams.has('b')){
+            document.getElementById("b").value = urlParams.get('b');
+        } else {
+            document.getElementById("b").value = 0;
+        }
 
         r.oninput = () => rv.innerText = r.value;
         g.oninput = () => gv.innerText = g.value;
@@ -99,7 +120,7 @@
         };
 
         function turnon() {
-            const url = `/on?r=${r.value}&g=${g.value}&b=${b.value}`;
+            const url = `http://192.168./on?r=${r.value}&g=${g.value}&b=${b.value}`;
             fetch(url);
         }
         </script>
