@@ -110,22 +110,18 @@
         }
 
         mc.onMessageArrived = function (message) {
-            if (message.destinationName === "led/status") {
-                let [now_r, now_g, now_b, status] = message.payloadString.split(',');
-                now_r = parseInt(now_r);
-                now_g = parseInt(now_g);
-                now_b = parseInt(now_b);
-                r.value = now_r;
-                g.value = now_g;
-                b.value = now_b;
-                rv.innerText = now_r;
-                gv.innerText = now_g;
-                bv.innerText = now_b;
-                colorBox.style.backgroundColor = `rgb(${now_r}, ${now_g}, ${now_b})`;
-                d_r_v.style.backgroundColor = `rgb(${now_r}, 0, 0)`;
-                d_g_v.style.backgroundColor = `rgb(0, ${now_g}, 0)`;
-                d_b_v.style.backgroundColor = `rgb(0, 0, ${now_b})`;
-                document.getElementById("onoff_b").innerText = status === "1" ? '關' : '開';
+            let json = JSON.parse(message.payloadString);
+            if(json.destinationName === "led/status") {
+                r.value = json.r || 0;
+                g.value = json.g || 0;
+                b.value = json.b || 0;
+                rv.innerText = r.value;
+                gv.innerText = g.value;
+                bv.innerText = b.value;
+                colorBox.style.backgroundColor = `rgb(${r.value}, ${g.value}, ${b.value})`;
+                d_r_v.style.backgroundColor = `rgb(${r.value}, 0, 0)`;
+                d_g_v.style.backgroundColor = `rgb(0, ${g.value}, 0)`;
+                d_b_v.style.backgroundColor = `rgb(0, 0, ${b.value})`;
             }
         };
 
@@ -144,12 +140,14 @@
         };
 
         function turnon() {
-            const status = document.getElementById("onoff_b").innerText === '開' ? '1' : '0';
-            const msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},${status}`);
-            msg.destinationName = "led/control";
-            client.send(msg);
-
-            document.getElementById("onoff_b").innerText = status === '1' ? '關' : '開';
+            let message = new Paho.MQTT.Message(JSON.stringify({
+                r: r.value,
+                g: g.value,
+                b: b.value,
+                status: document.getElementById("onoff_b").innerText === '開' ? '1' : '0'
+            }));
+            message.destinationName = "HootKaSelf/server";
+            mc.send(message);
         }
 
 
