@@ -73,7 +73,6 @@
     </div>
     <button id="onoff_b" onclick="turnon()">開</button>
     
-    <script src="https://unpkg.com/paho-mqtt/mqttws31.min.js"></script>
     <script>
         const client = new Paho.MQTT.Client("broker.hivemq.com", 8884, "web_" + parseInt(Math.random() * 1000000));
 
@@ -88,29 +87,40 @@
         const d_g_v = document.getElementById("g_v");
         const d_b_v = document.getElementById("b_v");
 
-        client.on('connect', () => {
-            console.log("MQTT connected");
-            client.subscribe('led/status');
-        });
+        client.onConnectionLost = function (responseObject) {
+            console.log("連線中斷：", responseObject.errorMessage);
+        };
 
-        client.on('message', (topic, message) => {
-            if (topic === 'led/status') {
-                let [now_r, now_g, now_b, status] = message.toString().split(',');
-                now_r = parseInt(now_r);
-                now_g = parseInt(now_g);
-                now_b = parseInt(now_b);
-                r.value = now_r;
-                g.value = now_g;
-                b.value = now_b;
-                rv.innerText = now_r;
-                gv.innerText = now_g;
-                bv.innerText = now_b;
-                colorBox.style.backgroundColor = `rgb(${now_r}, ${now_g}, ${now_b})`;
-                d_r_v.style.backgroundColor = `rgb(${now_r}, 0, 0)`;
-                d_g_v.style.backgroundColor = `rgb(0, ${now_g}, 0)`;
-                d_b_v.style.backgroundColor = `rgb(0, 0, ${now_b})`;
-                document.getElementById("onoff_b").innerText = status === "1" ? '關' : '開';
-            }
+        client.onMessageArrived = function (message) {
+        if (message.destinationName === "led/status") {
+            let [now_r, now_g, now_b, status] = message.payloadString.split(',');
+            now_r = parseInt(now_r);
+            now_g = parseInt(now_g);
+            now_b = parseInt(now_b);
+            r.value = now_r;
+            g.value = now_g;
+            b.value = now_b;
+            rv.innerText = now_r;
+            gv.innerText = now_g;
+            bv.innerText = now_b;
+            colorBox.style.backgroundColor = `rgb(${now_r}, ${now_g}, ${now_b})`;
+            d_r_v.style.backgroundColor = `rgb(${now_r}, 0, 0)`;
+            d_g_v.style.backgroundColor = `rgb(0, ${now_g}, 0)`;
+            d_b_v.style.backgroundColor = `rgb(0, 0, ${now_b})`;
+            document.getElementById("onoff_b").innerText = status === "1" ? '關' : '開';
+        }
+        };
+
+        // 連線
+        client.connect({
+        useSSL: true,
+        onSuccess: function () {
+            console.log("成功連線 HiveMQ");
+            client.subscribe("led/status");
+        },
+        onFailure: function (e) {
+            console.error("連線失敗：", e.errorMessage);
+        }
         });
 
         r.oninput = () => rv.innerText = r.value;
@@ -129,7 +139,10 @@
 
         function turnon() {
             const status = document.getElementById("onoff_b").innerText === '開' ? '1' : '0';
-            client.publish('led/control', `${r.value},${g.value},${b.value},${status}`);
+            const msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},${status}`);
+            msg.destinationName = "led/control";
+            client.send(msg);
+
             document.getElementById("onoff_b").innerText = status === '1' ? '關' : '開';
         }
 
