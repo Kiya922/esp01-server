@@ -147,7 +147,7 @@
             msg.destinationName = "led/control";
             mc.send(msg);
 
-            document.getElementById("onoff_b").innerText = status === '1' ? '關' : '開';
+            fetch(`https://led-ctrl.netlify.app/`);
         }
 
 
