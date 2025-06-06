@@ -89,18 +89,21 @@
 
         if(urlParams.has('r')){
             document.getElementById("r").value = urlParams.get('r');
+            r.oninput();
         } else {
             document.getElementById("r").value = 0;
         }
 
         if(urlParams.has('g')){
             document.getElementById("g").value = urlParams.get('g');
+            g.oninput();
         } else {
             document.getElementById("g").value = 0;
         }
 
         if(urlParams.has('b')){
             document.getElementById("b").value = urlParams.get('b');
+            b.oninput();
         } else {
             document.getElementById("b").value = 0;
         }
