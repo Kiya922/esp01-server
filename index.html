@@ -74,7 +74,7 @@
     <button id="onoff_b" onclick="turnon()">開</button>
     
     <script>
-        const client = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
+        mc = new Paho.MQTT.Client('broker.hivemq.com', 8884, 'mqtt_client_id');
 
         const r = document.getElementById("r");
         const g = document.getElementById("g");
@@ -87,24 +87,29 @@
         const d_g_v = document.getElementById("g_v");
         const d_b_v = document.getElementById("b_v");
 
-        client.on('connect', function () {
-            console.log('Connected');
-            client.subscribe('led/status', function (err) {
-                if (!err) {
-                    console.log('Subscribed to led/status');
-                } else {
-                    console.error('Subscription error:', err);
-                }
+        mc.connect({
+            onSuccess: onConnect,
+            useSSL: true,
+        });
+
+        mc.onConnectionLost = function (responseObject) {
+            console.log(responseObject.errorCode);
+            console.log("Connection Lost: "+responseObject.errorMessage);
+        }
+
+        function onConnect(){
+            console.log("Connected!");
+            mc.subscribe("led/status", {
+                onSuccess: function (){
+                    console.log('subscribeSuccess');
+                },
+                onFailure: function (){}
             });
-        });
+        }
 
-        client.on('error', function (error) {
-            console.log(error);
-        });
-
-        client.on('message', (topic, message) => {
-            if (topic === 'led/status') {
-                let [now_r, now_g, now_b, status] = message.toString().split(',');
+        mc.onMessageArrived = function (message) {
+            if (message.destinationName === "led/status") {
+                let [now_r, now_g, now_b, status] = message.payloadString.split(',');
                 now_r = parseInt(now_r);
                 now_g = parseInt(now_g);
                 now_b = parseInt(now_b);
@@ -138,7 +143,10 @@
 
         function turnon() {
             const status = document.getElementById("onoff_b").innerText === '開' ? '1' : '0';
-            client.publish('led/control', `${r.value},${g.value},${b.value},${status}`);
+            const msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},${status}`);
+            msg.destinationName = "led/control";
+            client.send(msg);
+
             document.getElementById("onoff_b").innerText = status === '1' ? '關' : '開';
         }
 
