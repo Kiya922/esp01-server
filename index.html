@@ -74,7 +74,7 @@
     
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
-        const client = mqtt.connect('wss://broker.hivemq.com:8880/mqtt');
+        const client = new Paho.MQTT.Client("broker.hivemq.com", 8884, "web_" + parseInt(Math.random() * 1000000));
 
         const r = document.getElementById("r");
         const g = document.getElementById("g");
