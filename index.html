@@ -78,11 +78,11 @@
             host: 'bf707fe8d51441e0ae5f250cf83d9f5a.s1.eu.hivemq.cloud',
             port: 8884,
             protocol: 'mqtts',
-            username: 'ssuser',
+            username: 'nuser',
             password: 'Ss01010101'
         }
 
-        var client = mqtt.connect("wss://bf707fe8d51441e0ae5f250cf83d9f5a.s1.eu.hivemq.cloud/mqtts");
+        var client = mqtt.connect("wss://bf707fe8d51441e0ae5f250cf83d9f5a.s1.eu.hivemq.cloud:8884/mqtt");
 
         const r = document.getElementById("r");
         const g = document.getElementById("g");
