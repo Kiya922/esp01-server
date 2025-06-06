@@ -74,7 +74,17 @@
     <button id="onoff_b" onclick="turnon()">開</button>
     
     <script>
-        const client = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
+        var mqtt = require('mqtt');
+
+        var options = {
+            host: '7469d243bb5f474a945cdead54d40a85.s1.eu.hivemq.cloud',
+            port: 8883,
+            protocol: 'mqtts',
+            username: 'cuser',
+            password: 'Bb02020202'
+        }
+
+        var client = mqtt.connect(options);
 
         const r = document.getElementById("r");
         const g = document.getElementById("g");
@@ -87,9 +97,19 @@
         const d_g_v = document.getElementById("g_v");
         const d_b_v = document.getElementById("b_v");
 
-        client.on('connect', () => {
-            console.log("MQTT connected");
-            client.subscribe('led/status');
+        client.on('connect', function () {
+            console.log('Connected');
+            client.subscribe('led/status', function (err) {
+                if (!err) {
+                    console.log('Subscribed to led/status');
+                } else {
+                    console.error('Subscription error:', err);
+                }
+            });
+        });
+
+        client.on('error', function (error) {
+            console.log(error);
         });
 
         client.on('message', (topic, message) => {
