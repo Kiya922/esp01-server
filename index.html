@@ -74,7 +74,7 @@
     
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
-        const client = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
+        const client = mqtt.connect('wss://broker.hivemq.com:8883/mqtt');
 
         const r = document.getElementById("r");
         const g = document.getElementById("g");
@@ -91,7 +91,7 @@
             console.log("MQTT connected");
             client.subscribe('led/status');
         });
-        
+
         client.on('message', (topic, message) => {
             if (topic === 'led/status') {
                 let [now_r, now_g, now_b, status] = message.toString().split(',');
