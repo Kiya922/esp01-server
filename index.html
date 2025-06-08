@@ -74,7 +74,8 @@
     <button id="onoff_b" onclick="turnon()">開</button>
     
     <script>
-        mc = new Paho.MQTT.Client('broker.hivemq.com', 8884, 'mqtt_client_id');
+        const nowMilliseconds = Date.now();
+        mc = new Paho.MQTT.Client('broker.hivemq.com', 8884, 'user_' + nowMilliseconds);
 
         const r = document.getElementById("r");
         const g = document.getElementById("g");
