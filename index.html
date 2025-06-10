@@ -146,7 +146,7 @@
             const status = document.getElementById("onoff_b").innerText === '開' ? '1' : '0';
             const msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},${status}`);
             msg.destinationName = "led/control";
-            message.retained = true;
+            msg.retained = true;
             mc.send(msg);
         }
 
