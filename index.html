@@ -243,6 +243,7 @@
                 msg.destinationName = "led/control";
                 msg.retained = true;
                 mc.send(msg);
+                printf("Send: %s", msg.payloadString);
             }
 
             function d_turnon() {
