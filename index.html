@@ -35,6 +35,12 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            background-image: linear-gradient(-45deg,
+			#444444 25%,
+			#333333 25%, #333333 50%,
+			#444444 50%, #444444 75%,
+			#333333 75%, #333333);
+	        background-size: 20px 20px;
         }
 
         .c_v{
@@ -60,97 +66,198 @@
       </style>
     <script src="https://cdn.jsdelivr.net/npm/paho-mqtt@1.0.3/mqttws31-min.js"></script>
   </head>
-  <body>
-    <div id="color_panel" style="width: 100%; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; align-items: center;">
-        <div style="width: 100%; height: 500px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center;">
-            <input type="range" id="r" min="1" max="255" value="1" style="width: 84%;"><div class="c_v" id="r_v"> R: <span id="rv">1</span></div><br>
-            <input type="range" id="g" min="1" max="255" value="1" style="width: 84%;"><div class="c_v" id="g_v"> G: <span id="gv">1</span></div><br>
-            <input type="range" id="b" min="1" max="255" value="1" style="width: 84%;"><div class="c_v" id="b_v"> B: <span id="bv">1</span></div><br>
+    <body>
+        <div id="color_panel" style="width: 100%; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; align-items: center;">
+            <div style="width: 100%; height: 500px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center;">
+                <input type="range" id="r" min="1" max="255" value="1" style="width: 84%;"><div class="c_v" id="r_v"> R: <span id="rv">1</span></div><br>
+                <input type="range" id="g" min="1" max="255" value="1" style="width: 84%;"><div class="c_v" id="g_v"> G: <span id="gv">1</span></div><br>
+                <input type="range" id="b" min="1" max="255" value="1" style="width: 84%;"><div class="c_v" id="b_v"> B: <span id="bv">1</span></div><br>
+            </div>
+            <div style="width: 100%; height: 500px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <span style="display:inline-block; width:500px; height:500px; border-radius: 100px; background-color:rgb(1,1,1);" id="colorBox"></span>
+            </div>
         </div>
-        <div style="width: 100%; height: 500px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-            <span style="display:inline-block; width:500px; height:500px; border-radius: 100px; background-color:rgb(1,1,1);" id="colorBox"></span>
+        <div style="width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+            <di id="modes" style="width: 100%; display: flex; justify-content: center; align-items: center; flex-wrap: wrap;">
+                <div id="h_ctrl_p" style=" width: 40%; height: 100px; border-radius: 20px 20px 0 0; font-size: 60px; display: flex; justify-content: center; align-items: center; background-color: #aaa;">手動模式</div>
+                <div id="d_ctrl_p" style=" width: 30%; height: 100px; border-radius: 20px 20px 0 0; font-size: 60px; display: flex; justify-content: center; align-items: center; background-color: #888">距離偵測</div>
+                <div id="l_ctrl_p" style=" width: 30%; height: 100px; border-radius: 20px 20px 0 0; font-size: 60px; display: flex; justify-content: center; align-items: center; background-color: #888">亮度偵測</div>
+            </div>
+            <div id="h_ctrl" style="width: 100%; height: 600px; display: flex; justify-content: center; align-items: center; background-color: #aaa;"><button id="onoff_b" onclick="turnon()">開</button></div>
+            <div id="d_ctrl" style="width: 100%; height: 600px; display: none; justify-content: center; align-items: center; background-color: #aaa;"><button id="h_ctrl_b" onclick="d_turnon()" style="width: 200px; height:200px; margin: 5%; border-radius: 100px; font-size: 60px; border-width: 35px;">開</button></div>
+            <div id="l_ctrl" style="width: 100%; height: 600px; display: none; justify-content: center; align-items: center; background-color: #aaa;"><button id="l_ctrl_b" onclick="turnon()" style="width: 200px; height:200px; margin: 5%; border-radius: 100px; font-size: 60px; border-width: 35px;">開</button></div>
         </div>
-    </div>
-    <button id="onoff_b" onclick="turnon()">開</button>
-    
-    <script>
-        const nowMilliseconds = Date.now();
-        mc = new Paho.MQTT.Client('broker.hivemq.com', 8884, 'user_' + nowMilliseconds);
+        
+        
+        <script>
+            const nowMilliseconds = Date.now();
+            mc = new Paho.MQTT.Client('broker.hivemq.com', 8884, 'user_' + nowMilliseconds);
 
-        const r = document.getElementById("r");
-        const g = document.getElementById("g");
-        const b = document.getElementById("b");
-        const rv = document.getElementById("rv");
-        const gv = document.getElementById("gv");
-        const bv = document.getElementById("bv");
-        const colorBox = document.getElementById("colorBox");
-        const d_r_v = document.getElementById("r_v");
-        const d_g_v = document.getElementById("g_v");
-        const d_b_v = document.getElementById("b_v");
+            const r = document.getElementById("r");
+            const g = document.getElementById("g");
+            const b = document.getElementById("b");
+            const rv = document.getElementById("rv");
+            const gv = document.getElementById("gv");
+            const bv = document.getElementById("bv");
+            const colorBox = document.getElementById("colorBox");
+            const d_r_v = document.getElementById("r_v");
+            const d_g_v = document.getElementById("g_v");
+            const d_b_v = document.getElementById("b_v");
+            const h_ctrl = document.getElementById("h_ctrl");
+            const d_ctrl = document.getElementById("d_ctrl");
+            const l_ctrl = document.getElementById("l_ctrl");
+            const h_ctrl_p = document.getElementById("h_ctrl_p");
+            const d_ctrl_p = document.getElementById("d_ctrl_p");
+            const l_ctrl_p = document.getElementById("l_ctrl_p");
+            h_ctrl_p.onclick = () => {
+                h_ctrl.style.display = "flex";
+                d_ctrl.style.display = "none";
+                l_ctrl.style.display = "none";
+                h_ctrl_p.style.width = "40%";
+                d_ctrl_p.style.width = "30%";
+                l_ctrl_p.style.width = "30%";
+                h_ctrl_p.style.backgroundColor = "#aaa";
+                d_ctrl_p.style.backgroundColor = "#888";
+                l_ctrl_p.style.backgroundColor = "#888";
 
-        mc.connect({
-            onSuccess: onConnect,
-            useSSL: true,
-        });
+            };
+            d_ctrl_p.onclick = () => {
+                h_ctrl.style.display = "none";
+                d_ctrl.style.display = "flex";
+                l_ctrl.style.display = "none";
+                h_ctrl_p.style.width = "30%";
+                d_ctrl_p.style.width = "40%";
+                l_ctrl_p.style.width = "30%";
+                h_ctrl_p.style.backgroundColor = "#888";
+                d_ctrl_p.style.backgroundColor = "#aaa";
+                l_ctrl_p.style.backgroundColor = "#888";
+            };
+            l_ctrl_p.onclick = () => {
+                h_ctrl.style.display = "none";
+                d_ctrl.style.display = "none";
+                l_ctrl.style.display = "flex";
+                h_ctrl_p.style.width = "30%";
+                d_ctrl_p.style.width = "30%";
+                l_ctrl_p.style.width = "40%";
+                h_ctrl_p.style.backgroundColor = "#888";
+                d_ctrl_p.style.backgroundColor = "#888";
+                l_ctrl_p.style.backgroundColor = "#aaa";
+            };
 
-        mc.onConnectionLost = function (responseObject) {
-            console.log(responseObject.errorCode);
-            console.log("Connection Lost: "+responseObject.errorMessage);
-        }
-
-        function onConnect(){
-            console.log("Connected!");
-            mc.subscribe("led/status", {
-                onSuccess: function (){
-                    console.log('subscribeSuccess');
-                },
-                onFailure: function (){}
+            mc.connect({
+                onSuccess: onConnect,
+                useSSL: true,
             });
-        }
 
-        mc.onMessageArrived = function (message) {
-            if (message.destinationName === "led/status") {
-                let [now_r, now_g, now_b, status] = message.payloadString.split(',');
-                now_r = parseInt(now_r);
-                now_g = parseInt(now_g);
-                now_b = parseInt(now_b);
-                r.value = now_r;
-                g.value = now_g;
-                b.value = now_b;
-                rv.innerText = now_r;
-                gv.innerText = now_g;
-                bv.innerText = now_b;
-                colorBox.style.backgroundColor = `rgb(${now_r}, ${now_g}, ${now_b})`;
-                d_r_v.style.backgroundColor = `rgb(${now_r}, 0, 0)`;
-                d_g_v.style.backgroundColor = `rgb(0, ${now_g}, 0)`;
-                d_b_v.style.backgroundColor = `rgb(0, 0, ${now_b})`;
-                document.getElementById("onoff_b").innerText = status === "1" ? '關' : '開';
+            mc.onConnectionLost = function (responseObject) {
+                console.log(responseObject.errorCode);
+                console.log("Connection Lost: "+responseObject.errorMessage);
             }
-        }
 
-        r.oninput = () => rv.innerText = r.value;
-        g.oninput = () => gv.innerText = g.value;
-        b.oninput = () => bv.innerText = b.value;
+            function onConnect(){
+                console.log("Connected!");
+                mc.subscribe("led/status", {
+                    onSuccess: function (){
+                        console.log('subscribeSuccess');
+                    },
+                    onFailure: function (){}
+                });
+            }
 
-        r.oninput = g.oninput = b.oninput = () => {
-            rv.innerText = r.value;
-            gv.innerText = g.value;
-            bv.innerText = b.value;
-            colorBox.style.backgroundColor = `rgb(${r.value}, ${g.value}, ${b.value})`;
-            d_r_v.style.backgroundColor = `rgb(${r.value}, 0, 0)`;
-            d_g_v.style.backgroundColor = `rgb(0, ${g.value}, 0)`;
-            d_b_v.style.backgroundColor = `rgb(0, 0, ${b.value})`;
-        };
+            mc.onMessageArrived = function (message) {
+                if (message.destinationName === "led/status") {
+                    let [now_r, now_g, now_b, status, mode] = message.payloadString.split(',');
+                    now_r = parseInt(now_r);
+                    now_g = parseInt(now_g);
+                    now_b = parseInt(now_b);
+                    r.value = now_r;
+                    g.value = now_g;
+                    b.value = now_b;
+                    rv.innerText = now_r;
+                    gv.innerText = now_g;
+                    bv.innerText = now_b;
+                    colorBox.style.backgroundColor = `rgb(${now_r}, ${now_g}, ${now_b})`;
+                    d_r_v.style.backgroundColor = `rgb(${now_r}, 0, 0)`;
+                    d_g_v.style.backgroundColor = `rgb(0, ${now_g}, 0)`;
+                    d_b_v.style.backgroundColor = `rgb(0, 0, ${now_b})`;
+                    if(mode == 1){
+                        document.getElementById("onoff_b").innerText = status === "1" ? '關' : '開';
+                        document,getElementById("h_ctrl_b").innerText = '關';
+                        document.getElementById("l_ctrl_b").innerText = '關';
+                        h_ctrl.style.display = "flex";
+                        d_ctrl.style.display = "none";
+                        l_ctrl.style.display = "none";
+                        h_ctrl_p.style.width = "40%";
+                        d_ctrl_p.style.width = "30%";
+                        l_ctrl_p.style.width = "30%";
+                        h_ctrl_p.style.backgroundColor = "#aaa";
+                        d_ctrl_p.style.backgroundColor = "#888";
+                        l_ctrl_p.style.backgroundColor = "#888";
+                    } else if(mode == 2){
+                        document.getElementById("onoff_b").innerText = status === "1" ? '關' : '開';
+                        document,getElementById("h_ctrl_b").innerText = '開';
+                        document.getElementById("l_ctrl_b").innerText = '關';
+                        h_ctrl.style.display = "none";
+                        d_ctrl.style.display = "flex";
+                        l_ctrl.style.display = "none";
+                        h_ctrl_p.style.width = "30%";
+                        d_ctrl_p.style.width = "40%";
+                        l_ctrl_p.style.width = "30%";
+                        h_ctrl_p.style.backgroundColor = "#888";
+                        d_ctrl_p.style.backgroundColor = "#aaa";
+                        l_ctrl_p.style.backgroundColor = "#888";
+                    } else if(mode == 3){
+                        document.getElementById("onoff_b").innerText = status === "1" ? '關' : '開';
+                        document,getElementById("h_ctrl_b").innerText = '關';
+                        document.getElementById("l_ctrl_b").innerText = '開';
+                        h_ctrl.style.display = "none";
+                        d_ctrl.style.display = "none";
+                        l_ctrl.style.display = "flex";
+                        h_ctrl_p.style.width = "30%";
+                        d_ctrl_p.style.width = "30%";
+                        l_ctrl_p.style.width = "40%";
+                        h_ctrl_p.style.backgroundColor = "#888";
+                        d_ctrl_p.style.backgroundColor = "#888";
+                        l_ctrl_p.style.backgroundColor = "#aaa";
+                    }
+                }
+            }
 
-        function turnon() {
-            const status = document.getElementById("onoff_b").innerText === '開' ? '1' : '0';
-            const msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},${status}`);
-            msg.destinationName = "led/control";
-            msg.retained = true;
-            mc.send(msg);
-        }
+            r.oninput = () => rv.innerText = r.value;
+            g.oninput = () => gv.innerText = g.value;
+            b.oninput = () => bv.innerText = b.value;
 
+            r.oninput = g.oninput = b.oninput = () => {
+                rv.innerText = r.value;
+                gv.innerText = g.value;
+                bv.innerText = b.value;
+                colorBox.style.backgroundColor = `rgb(${r.value}, ${g.value}, ${b.value})`;
+                d_r_v.style.backgroundColor = `rgb(${r.value}, 0, 0)`;
+                d_g_v.style.backgroundColor = `rgb(0, ${g.value}, 0)`;
+                d_b_v.style.backgroundColor = `rgb(0, 0, ${b.value})`;
+            };
 
+            function turnon() {
+                const status = document.getElementById("onoff_b").innerText === '開' ? '1' : '0';
+                const msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},${status}, 1`);
+                msg.destinationName = "led/control";
+                msg.retained = true;
+                mc.send(msg);
+            }
+
+            function d_turnon() {
+                const msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},0 , 2`);
+                msg.destinationName = "led/control";
+                msg.retained = true;
+                mc.send(msg);
+            }
+
+            function l_turnon() {
+                const msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},0 , 3`);
+                msg.destinationName = "led/control";
+                msg.retained = true;
+                mc.send(msg);
+            }
         </script>
     </body>
 </html>
