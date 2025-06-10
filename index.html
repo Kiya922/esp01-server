@@ -247,14 +247,16 @@
             }
 
             function d_turnon() {
-                msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},${0},${2}`);
+                let mode = document.getElementById("h_ctrl_b").innerText === '開' ? '2' : '1';
+                msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},${0},${mode}`);
                 msg.destinationName = "led/control";
                 msg.retained = true;
                 mc.send(msg);
             }
 
             function l_turnon() {
-                msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},${0},${3}`);
+                let mode = document.getElementById("l_ctrl_b").innerText === '開' ? '3' : '1';
+                msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},${0},${mode}`);
                 msg.destinationName = "led/control";
                 msg.retained = true;
                 mc.send(msg);
