@@ -92,6 +92,7 @@
         <script>
             const nowMilliseconds = Date.now();
             mc = new Paho.MQTT.Client('broker.hivemq.com', 8884, 'user_' + nowMilliseconds);
+            let msg = new Paho.MQTT.Message("1,1,1,0, 1");
 
             const r = document.getElementById("r");
             const g = document.getElementById("g");
@@ -239,21 +240,21 @@
 
             function turnon() {
                 let status = document.getElementById("onoff_b").innerText === '開' ? '1' : '0';
-                let msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},${status}, 1`);
+                msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},${status}, 1`);
                 msg.destinationName = "led/control";
                 msg.retained = true;
                 mc.send(msg);
             }
 
             function d_turnon() {
-                let msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},0 , 2`);
+                msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},0 , 2`);
                 msg.destinationName = "led/control";
                 msg.retained = true;
                 mc.send(msg);
             }
 
             function l_turnon() {
-                let msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},0 , 3`);
+                msg = new Paho.MQTT.Message(`${r.value},${g.value},${b.value},0 , 3`);
                 msg.destinationName = "led/control";
                 msg.retained = true;
                 mc.send(msg);
